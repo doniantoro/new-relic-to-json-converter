@@ -7,9 +7,10 @@
 </head>
 <body>
     <h2>Convert New Relic Input to JSON</h2>
-    <textarea id="inputData" rows="10" cols="50" placeholder="Enter New Relic data (e.g. request.address[0].city: Karawang)"></textarea>
+    <textarea id="inputData" rows="10" cols="50" placeholder="Enter New Relic data (e.g. request.test: doni)"></textarea>
     <br>
     <button onclick="convertToJson()">Convert</button>
+    <button onclick="copyToClipboard()">Copy Response</button>
     <h3>Output JSON:</h3>
     <pre id="outputJson"></pre>
 
@@ -34,6 +35,9 @@
                 let key = parts[0].trim();
                 let value = parts.slice(1).join(":").trim(); // Join in case value contains ":"
 
+                // Remove first object name (e.g., "request.")
+                key = key.replace(/^[^.]+\./, ""); // Removes first part before "."
+
                 // Convert "null" string to actual null
                 if (value.toLowerCase() === "null") {
                     value = null;
@@ -42,7 +46,7 @@
                 else if (/^\d+$/.test(value)) {
                     // Keep leading zeros by treating it as a string
                     if (value.startsWith("0")) {
-                        value = value; // Keep it as a string
+                        value = value; // Keep as string
                     } else {
                         value = Number(value); // Convert to number
                     }
@@ -55,10 +59,10 @@
                 for (let i = 0; i < keys.length - 1; i++) {
                     let subKey = keys[i];
 
-                    // Detect array format (e.g., request.address[0])
+                    // Detect array format (e.g., address[0])
                     let match = subKey.match(/(.*)\[(\d+)\]/);
                     if (match) {
-                        let arrayKey = match[1]; // "request.address"
+                        let arrayKey = match[1]; // "address"
                         let index = parseInt(match[2], 10); // 0 or 1
 
                         if (!obj[arrayKey]) obj[arrayKey] = [];
@@ -74,6 +78,15 @@
             });
 
             document.getElementById("outputJson").textContent = JSON.stringify(result, null, 4);
+        }
+
+        function copyToClipboard() {
+            const outputJson = document.getElementById("outputJson").textContent;
+            navigator.clipboard.writeText(outputJson).then(() => {
+                alert("JSON copied to clipboard!");
+            }).catch(err => {
+                console.error("Failed to copy: ", err);
+            });
         }
     </script>
 </body>
